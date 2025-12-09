@@ -21,6 +21,7 @@ func main() {
 		if len(line) > 0 {
 			fmt.Printf("Readline: %q\n", line)
 		}
+		n1 := 0
 		if err != nil {
 			break
 		}
