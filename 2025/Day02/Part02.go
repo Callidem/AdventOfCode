@@ -8,49 +8,61 @@ import (
 )
 
 func main() {
-	file, err := os.Open("arq.txt")
+	file, err := os.Open("data.txt")
 	if err != nil {
 		fmt.Println("Erro ao abrir o arquivo:", err)
 		return
 	}
 	defer file.Close()
 	arq := bufio.NewReader(file)
-	clock := 50
-	offset := 0
-	zeros := 0
+	const trace = '-'
+	const comma = ','
+	lineLen := 0
+	totalSum := 0
 	for {
-		line, _, err := arq.ReadLine()
+		line, err := arq.ReadString(trace)
 		if len(line) > 0 {
 			fmt.Printf("Readline: %q\n", line)
+		} else {
+			break
+		}
+		if line[len(line)-1] == comma || line[len(line)-1] == trace {
+			lineLen = len(line) - 1
+		} else {
+			lineLen = len(line)
+		}
+
+		n1, err := strconv.Atoi(string(line[0:lineLen]))
+		fmt.Printf("%d\n", n1)
+
+		line, err = arq.ReadString(comma)
+		if line[len(line)-1] == comma || line[len(line)-1] == trace {
+			lineLen = len(line) - 1
+		} else {
+			lineLen = len(line)
+		}
+		n2, err := strconv.Atoi(string(line[0:lineLen]))
+		fmt.Printf("%d\n", n2)
+		for i := n1; i <= n2; i++ {
+			s1 := strconv.Itoa(i)
+			//fmt.Printf("Number: %s\n", s1)
+			h1 := "a"
+			if len(s1) > 2 {
+				h1 = s1[0:(len(s1) / 2)]
+				//fmt.Printf("Vai até %d\n", (len(s1) / 2))
+			} else {
+				h1 = s1[0 : len(s1)-1]
+			}
+			h2 := s1[(len(s1) / 2):]
+			//fmt.Printf("H1: %s H2: %s\n", h1, h2)
+			if h1 == h2 {
+				totalSum += i
+				//fmt.Printf("ACHEI IGUAL: %d\n", i)
+			}
 		}
 		if err != nil {
 			break
 		}
-		offset, _ = strconv.Atoi(string(line[1:]))
-		if line[0] == 'L' {
-			if clock == 0 {
-				zeros--
-			}
-			clock -= offset
-		} else {
-			clock += offset
-		}
-		for clock < 0 {
-			clock += 100
-			zeros++
-		}
-		for clock >= 100 {
-			clock -= 100
-			if clock != 100 {
-				zeros++
-			}
-
-		}
-		if clock == 0 {
-			zeros++
-		}
-		fmt.Printf("Clock: %d\n", clock)
-
 	}
-	fmt.Printf("Total de vezes que o clock chegou a zero: %d\n", zeros)
+	fmt.Printf("Total Sum: %d\n", totalSum)
 }
