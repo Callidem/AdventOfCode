@@ -4,8 +4,77 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strconv"
 )
+
+func countRolls(mapa []string, adjSum [][]int) {
+	for i := 0; i < len(mapa); i++ {
+		fmt.Printf("Linha %d: %s\n", i, mapa[i])
+		for j := 0; j < len(mapa[i]); j++ {
+			if i > 0 {
+				if mapa[i-1][j] == '@' {
+					adjSum[i][j]++
+				}
+				if j > 0 {
+					if mapa[i-1][j-1] == '@' {
+						adjSum[i][j]++
+					}
+				}
+				if j < len(mapa[i])-1 {
+					if mapa[i-1][j+1] == '@' {
+						adjSum[i][j]++
+					}
+				}
+			}
+			if i < len(mapa)-1 {
+				if mapa[i+1][j] == '@' {
+					adjSum[i][j]++
+				}
+				if j < len(mapa[i])-1 {
+					if mapa[i+1][j+1] == '@' {
+						adjSum[i][j]++
+					}
+				}
+				if j > 0 {
+					if mapa[i+1][j-1] == '@' {
+						adjSum[i][j]++
+					}
+				}
+			}
+			if j > 0 {
+				if mapa[i][j-1] == '@' {
+					adjSum[i][j]++
+				}
+			}
+			if j < len(mapa[i])-1 {
+				if mapa[i][j+1] == '@' {
+					adjSum[i][j]++
+				}
+			}
+		}
+	}
+}
+
+func removeRolls(mapa []string, adjSum [][]int) int {
+	removed := 0
+	for i := 0; i < len(adjSum); i++ {
+		for j := 0; j < len(adjSum[i]); j++ {
+
+			if adjSum[i][j] < 4 && mapa[i][j] != '.' {
+				//fmt.Printf("i:%d, j:%d, valor eh menor que 4 e caractere eh @\n", i, j)
+				removed++
+				row := []rune(mapa[i])
+				row[j] = '.'
+				mapa[i] = string(row)
+				//fmt.Printf(" %d ", adjSum[i][j])
+			} else {
+				//fmt.Printf(" . ")
+			}
+			adjSum[i][j] = 0
+		}
+		//fmt.Printf("\n")
+	}
+	return removed
+}
 
 func main() {
 	file, err := os.Open("data.txt")
@@ -15,48 +84,33 @@ func main() {
 	}
 	defer file.Close()
 	arq := bufio.NewReader(file)
+	var mapa []string
+	var adjSum [][]int
+
 	totalSum := 0
 	for {
 		line, _, err := arq.ReadLine()
 		if len(line) > 0 {
-			fmt.Printf("Readline: %q\n", line)
+			//fmt.Printf("Readline: %q\n", line)
+			mapa = append(mapa, string(line))
+			adjSum = append(adjSum, make([]int, len(line)))
 		} else {
 			break
 		}
-		max := 0
-		joltage := 0
-		sJoltage := ""
-		// achar caractere das dezenas
-		index := 0
-		sJoltageLen := 12
-		limit := len(line) - (sJoltageLen - 1)
-		for j := 0; j < sJoltageLen; j++ {
-			max = 0
-			fmt.Printf("Analisando casa %d do joltage\n", j)
-			for i := index; i < limit; i++ {
-				fmt.Printf("Analisando indice %d, valor: %q\n", i, line[i])
-				aux, err := strconv.Atoi(string(line[i]))
-				if err != nil {
-					break
-				}
-				if aux > max {
-					fmt.Printf("Novo maior encontrado para o indice %d: %d\n", i, aux)
-					max = aux
-					index = i + 1
-					fmt.Printf("Indice novo: %d\n", index)
-
-				}
-			}
-			limit++
-			fmt.Printf("Limite novo: %d\n", limit)
-			sJoltage += strconv.Itoa(max)
-		}
-		joltage, err = strconv.Atoi(sJoltage)
-		fmt.Printf("Joltage: %d\n", joltage)
-		totalSum += joltage
 		if err != nil {
 			break
 		}
 	}
+
+	for {
+		countRolls(mapa, adjSum)
+		removed := removeRolls(mapa, adjSum)
+		fmt.Printf("Rolos removidos: %d\n", removed)
+		if removed == 0 {
+			break
+		}
+		totalSum += removed
+	}
+
 	fmt.Printf("Total Sum: %d\n", totalSum)
 }
